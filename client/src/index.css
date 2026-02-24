@@ -1,0 +1,307 @@
+/* ============================================================
+ * DESIGN PHILOSOPHY: 和モダン × ミニマリズム
+ * - 和紙色ベース (#F5F0E8) + 墨色テキスト (#1A1A2E)
+ * - 朱色アクセント (#C0392B) + 青緑選択色 (#2E86AB)
+ * - Noto Serif JP (見出し) + Roboto Mono (数字) + Noto Sans JP (UI)
+ * - 余白を積極的に使い、盤面に集中させる
+ * ============================================================ */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+:root {
+  --radius: 0.5rem;
+  /* 和紙色ベース */
+  --background: oklch(0.975 0.008 80);
+  --foreground: oklch(0.18 0.02 260);
+  --card: oklch(0.99 0.005 80);
+  --card-foreground: oklch(0.18 0.02 260);
+  --popover: oklch(0.99 0.005 80);
+  --popover-foreground: oklch(0.18 0.02 260);
+  /* 朱色アクセント */
+  --primary: oklch(0.48 0.18 25);
+  --primary-foreground: oklch(0.98 0.005 80);
+  /* 淡い青緑 */
+  --secondary: oklch(0.92 0.02 200);
+  --secondary-foreground: oklch(0.25 0.06 200);
+  --muted: oklch(0.94 0.01 80);
+  --muted-foreground: oklch(0.52 0.015 80);
+  --accent: oklch(0.88 0.04 200);
+  --accent-foreground: oklch(0.22 0.06 200);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.86 0.012 80);
+  --input: oklch(0.86 0.012 80);
+  --ring: oklch(0.52 0.12 200);
+
+  /* Sudoku specific colors */
+  --sudoku-bg: #F5F0E8;
+  --sudoku-grid-border: #8B7355;
+  --sudoku-cell-border: #C8B99A;
+  --sudoku-block-border: #5C4A32;
+  --sudoku-selected: #D4EAF7;
+  --sudoku-related: #EAF4FB;
+  --sudoku-same-number: #B8D4E8;
+  --sudoku-fixed: #1A1A2E;
+  --sudoku-input: #2E5FA3;
+  --sudoku-error: #C0392B;
+  --sudoku-error-bg: #FDECEA;
+  --sudoku-hint: #27AE60;
+  --sudoku-memo: #7F8C8D;
+  --sudoku-complete: #D4AF37;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: var(--sudoku-bg);
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}
+
+/* ============================================================
+ * SUDOKU BOARD STYLES
+ * ============================================================ */
+
+.sudoku-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  border: 3px solid var(--sudoku-block-border);
+  background-color: var(--sudoku-block-border);
+  gap: 0;
+  box-shadow: 0 8px 32px rgba(92, 74, 50, 0.18), 0 2px 8px rgba(92, 74, 50, 0.1);
+}
+
+.sudoku-cell {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FDFAF5;
+  border: 1px solid var(--sudoku-cell-border);
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 3×3ブロック境界 */
+.sudoku-cell:nth-child(3n) {
+  border-right: 2.5px solid var(--sudoku-block-border);
+}
+.sudoku-cell:nth-child(9n) {
+  border-right: none;
+}
+.sudoku-cell[data-row="2"],
+.sudoku-cell[data-row="5"] {
+  border-bottom: 2.5px solid var(--sudoku-block-border);
+}
+
+/* セル状態 */
+.sudoku-cell.selected {
+  background-color: var(--sudoku-selected) !important;
+}
+.sudoku-cell.related {
+  background-color: var(--sudoku-related);
+}
+.sudoku-cell.same-number {
+  background-color: var(--sudoku-same-number);
+}
+.sudoku-cell.error {
+  background-color: var(--sudoku-error-bg);
+}
+.sudoku-cell.error .cell-value {
+  color: var(--sudoku-error) !important;
+}
+
+/* 数字スタイル */
+.cell-value {
+  font-family: 'Roboto Mono', monospace;
+  font-size: clamp(14px, 3.5vw, 28px);
+  font-weight: 600;
+  line-height: 1;
+  transition: color 0.1s ease, transform 0.08s ease;
+}
+.cell-value.fixed {
+  color: var(--sudoku-fixed);
+  font-weight: 700;
+}
+.cell-value.user-input {
+  color: var(--sudoku-input);
+  font-weight: 500;
+}
+.cell-value.hint-revealed {
+  color: var(--sudoku-hint);
+  font-weight: 600;
+}
+
+/* メモ数字 */
+.memo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  padding: 1px;
+  gap: 0;
+}
+.memo-digit {
+  font-family: 'Roboto Mono', monospace;
+  font-size: clamp(6px, 1.2vw, 9px);
+  color: var(--sudoku-memo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* 数字入力ボタン */
+.number-btn {
+  font-family: 'Roboto Mono', monospace;
+  font-size: clamp(16px, 3vw, 24px);
+  font-weight: 600;
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--sudoku-cell-border);
+  background: #FDFAF5;
+  color: var(--sudoku-fixed);
+  border-radius: 6px;
+  transition: all 0.12s ease;
+  box-shadow: 0 1px 3px rgba(92, 74, 50, 0.1);
+}
+.number-btn:hover {
+  background: var(--sudoku-selected);
+  border-color: var(--sudoku-grid-border);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(92, 74, 50, 0.15);
+}
+.number-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(92, 74, 50, 0.1);
+}
+.number-btn.active {
+  background: var(--sudoku-input);
+  color: white;
+  border-color: var(--sudoku-input);
+}
+
+/* アニメーション */
+@keyframes cellPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+@keyframes completePulse {
+  0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.6); }
+  70% { box-shadow: 0 0 0 20px rgba(212, 175, 55, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cell-pop { animation: cellPop 0.15s ease; }
+.error-shake { animation: errorShake 0.3s ease; }
+.complete-pulse { animation: completePulse 0.8s ease; }
+.fade-in-up { animation: fadeInUp 0.4s ease forwards; }
+.slide-down { animation: slideDown 0.35s ease forwards; }
+
+/* タイマー */
+.timer-display {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--sudoku-fixed);
+  letter-spacing: 0.05em;
+}
+
+/* 難易度バッジ */
+.difficulty-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.difficulty-easy { background: #D5F5E3; color: #1E8449; }
+.difficulty-normal { background: #D6EAF8; color: #1A5276; }
+.difficulty-hard { background: #FADBD8; color: #922B21; }
+
+/* スクロールバー */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--sudoku-cell-border); border-radius: 3px; }
+
+/* レスポンシブ */
+@media (max-width: 480px) {
+  .sudoku-cell {
+    border-width: 0.5px;
+  }
+  .sudoku-cell:nth-child(3n) {
+    border-right-width: 2px;
+  }
+  .sudoku-cell[data-row="2"],
+  .sudoku-cell[data-row="5"] {
+    border-bottom-width: 2px;
+  }
+}
